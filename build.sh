@@ -427,6 +427,13 @@ if [ "${BUILD_DISK:-1}" = 1 ]; then
       || fail "failed to cross-compile tools/mali_smoke.c"
     chmod 0755 "$SHARE/mali/mali_smoke"
   fi
+  if [ -f "$ROOT/poc/poc.c" ]; then
+    log "  cross-compiling poc/poc.c (static aarch64)"
+    "${CROSS_COMPILE}gcc" -static -O2 -Wall \
+      -o "$SHARE/mali/poc" "$ROOT/poc/poc.c" \
+      || fail "failed to cross-compile poc/poc.c"
+    chmod 0755 "$SHARE/mali/poc"
+  fi
   IMG="$OUT/shared.img" SRC="$SHARE" SIZE_MB="${DISK_SIZE_MB:-64}" \
     DRIVER_FLAVOR="$DRIVER_FLAVOR" DRIVER_VERSION="$DRIVER_VERSION" \
     "$ROOT/disk.sh" build || fail "disk.sh build failed"
