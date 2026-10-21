@@ -117,6 +117,7 @@ DEPS=(
   "libelf-dev:"        # objtool / ELF tooling
   "libncurses-dev:"    # menuconfig
   "e2fsprogs:mkfs.ext4" # shared ext4 disk image
+  "patch:patch"        # apply kernel/driver patches
 )
 have() { [ -n "$2" ] && command -v "$2" >/dev/null 2>&1 || dpkg -s "$1" >/dev/null 2>&1; }
 
@@ -214,6 +215,18 @@ tar -C "$MDIR" -xf "$DL/$DRIVER_TARBALL"
 MDIR_SRC="$(find "$MDIR" -type d -path '*/driver/product/kernel' -print -quit 2>/dev/null || true)"
 [ -n "$MDIR_SRC" ] || fail "driver tree (driver/product/kernel) not found under $MDIR"
 [ -d "$MDIR_SRC/drivers/gpu/arm" ] || fail "no drivers/gpu/arm under $MDIR_SRC"
+
+# Apply local patches to the extracted Mali driver source (if any)
+PATCH_DIR="$ROOT/patches"
+if [ -d "$PATCH_DIR" ]; then
+  shopt -s nullglob
+  for p in "$PATCH_DIR"/*.patch; do
+    [ -f "$p" ] || continue
+    log "applying patch $(basename "$p") to Mali driver source"
+    (cd "$MDIR_SRC" && patch -p1 < "$p") || fail "failed to apply $(basename "$p")"
+  done
+  shopt -u nullglob
+fi
 
 # ---------------------------------------------------------------------------
 # [4/10] integrate Kbase into the kernel tree
