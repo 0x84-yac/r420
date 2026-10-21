@@ -36,6 +36,7 @@
 #   DRIVER_FLAVOR   valhall | bifrost (default: auto-detect, else valhall)
 #   DRIVER_VERSION  (default r42p0-01eac0)
 #   NO_STAGE        1 = do not refresh share/mali/ from the selected out/ dir
+#   KASAN_EXTRA     extra kernel cmdline args (e.g. "kasan.report_always=1")
 #
 set -euo pipefail
 
@@ -102,11 +103,15 @@ if [ "$USE_9P" = 1 ]; then
   ARGS+=(-virtfs "local,path=$SHARE,mount_tag=host0,security_model=passthrough")
 fi
 
+APPEND='console=ttyAMA0 rdinit=/init acpi=off nokaslr loglevel=7'
+# Extra kernel cmdline knobs (e.g. KASAN_EXTRA="kasan.report_always=1").
+[ -n "${KASAN_EXTRA:-}" ] && APPEND="$APPEND $KASAN_EXTRA"
+
 ARGS+=(
   -kernel "$OUT/Image.gz"
   -initrd "$OUT/initramfs-arm64.cpio.gz"
   -dtb    "$OUT/virt_mali.dtb"
-  -append 'console=ttyAMA0 rdinit=/init acpi=off nokaslr loglevel=7'
+  -append "$APPEND"
 )
 [ "${#EXTRA[@]}" -gt 0 ] && ARGS+=("${EXTRA[@]}")
 
