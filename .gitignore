@@ -1,7 +1,6 @@
 # build.sh working tree
 /downloads/
 /build/
-/out/
 /share/
 *.tar
 linux-*.tar.xz
